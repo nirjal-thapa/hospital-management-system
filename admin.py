@@ -240,9 +240,7 @@ class Admin:
             return # stop the procedures
 
         print("-----Doctors Select-----")
-        print('Select the doctor that fits these symptoms:')
-        patients[patient_index].print_symptoms() # print the patient symptoms
-
+        print('Select a doctor for the patient:')
         print('--------------------------------------------------')
         print('ID |          Full Name           |  Speciality   ')
         self.view(doctors)
@@ -344,4 +342,35 @@ class Admin:
         else:
             #ToDo16
             print('Invalid operation choosen. Check your spelling!')
+
+
+    def management_report(self, doctors, patients, discharged_patients):
+        """
+        Prints a simple management report for the admin:
+         - Total number of doctors
+         - Total number of patients per doctor
+         - Total number of patients per illness (symptom) type
+        """
+
+        print("-----Management Report-----")
+
+        # a) Total number of doctors in the system
+        total_doctors = len(doctors)
+        print(f'Total number of doctors: {total_doctors}')
+
+        # b) Total number of patients per doctor
+        print("\nTotal number of patients per doctor:")
+        if not doctors:
+            print('No doctors found.')
+        else:
+            for doctor in doctors:
+                count = 0
+                # use the helper if available
+                if hasattr(doctor, "get_patient_count"):
+                    count = doctor.get_patient_count()
+                print(f'- {doctor.full_name()}: {count} patient(s)')
+
+        # d) Total number of patients based on the illness type
+        print("\nTotal number of patients per illness type:")
+        print('Illness / symptom tracking is currently disabled.')
 

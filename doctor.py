@@ -46,5 +46,9 @@ class Doctor:
     def add_patient(self, patient):
         self.__patients.append(patient)
 
+    def get_patient_count(self):
+        """Returns the number of patients assigned to this doctor."""
+        return len(self.__patients)
+
     def __str__(self) :
         return f'{self.full_name():^30}|{self.__speciality:^15}'

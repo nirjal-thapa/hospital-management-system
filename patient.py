@@ -17,8 +17,6 @@ class Patient:
         self.__age = age
         self.__mobile = mobile
         self.__postcode = postcode
-        self.__symptoms = []
-
         self.__doctor = 'None'
        
 
@@ -36,22 +34,6 @@ class Patient:
     def link(self, doctor):
         """Args: doctor(string): the doctor full name"""
         self.__doctor = doctor
-
-    def add_symptom(self, symptom):
-        """Adds a symptom to the symptoms list
-        Args:
-            symptom (string): the symptom to add
-        """
-        self.__symptoms.append(symptom)
-
-    def print_symptoms(self):
-
-        """prints all the symptoms"""
-        #ToDo4
-
-        print(f'Symptoms of {self.full_name()}:')
-        for symptom in self.__symptoms:
-            print(f'- {symptom}')
 
     def __str__(self):
         return f'{self.full_name():^30}|{self.__doctor:^30}|{self.__age:^5}|{self.__mobile:^15}|{self.__postcode:^10}'

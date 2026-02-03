@@ -29,8 +29,10 @@ def main():
         print(' 2- Discharge patients')
         print(' 3- View discharged patient')
         print(' 4- Assign doctor to a patient')
-        print(' 5- Update admin detais')
-        print(' 6- Quit')
+        print(' 5- Update admin details')
+        print(' 6- Management report')
+        print(' 7- Quit')
+        
 
         # get the option
         op = input('Option: ')
@@ -74,7 +76,11 @@ def main():
             admin.update_details()
 
         elif op == '6':
-            # 6 - Quit
+            # 6 - Management report
+            admin.management_report(doctors, patients, discharged_patients)
+
+        elif op == '7':
+            # 7 - Quit
             #ToDo5
             print('Exiting the program. Goodbye!')
             running = False
