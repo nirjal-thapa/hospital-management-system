@@ -1,5 +1,5 @@
 from doctor import Doctor
-from patient import Patient
+from patient import Patient, patient_from_line
 
 
 class Admin:
@@ -200,6 +200,87 @@ class Admin:
             print('Invalid operation choosen. Check your spelling!')
 
 
+    def get_patient_details(self):
+        """
+        Get the details needed to add a patient
+        Returns:
+            first_name, surname, age, mobile, address, postcode
+        """
+        first_name = input('First name of Patient: ')
+        surname = input('Surname of Patient: ')
+        age = int(input('Age of Patient: '))
+        mobile = input('Mobile number of Patient: ')
+        address = input('Address of Patient: ')
+        postcode = input('Postcode of Patient (optional, press Enter to skip): ')
+        return first_name, surname, age, mobile, address, postcode
+
+    def register_patient(self, patients):
+        """
+        Register a new patient
+        Args:
+            patients (list<Patient>): list of all active patients
+        """
+        print("-----Register Patient-----")
+        print('Enter the patient\'s details:')
+        first_name, surname, age, mobile, address, postcode = self.get_patient_details()
+        
+        # Check if patient already exists
+        name_exists = False
+        for patient in patients:
+            if first_name == patient.get_first_name() and surname == patient.get_surname() and mobile == patient.get_mobile():
+                print('Patient with same name and mobile number already exists.')
+                name_exists = True
+                break
+        
+        if not name_exists:
+            new_patient = Patient(first_name, surname, age, mobile, address, postcode)
+            
+            # Ask for symptoms
+            print('Enter symptoms (press Enter after each symptom, type "done" when finished):')
+            while True:
+                symptom = input('Symptom: ').strip()
+                if symptom.lower() == 'done' or symptom == '':
+                    break
+                new_patient.add_symptom(symptom)
+            
+            patients.append(new_patient)
+            print('Patient registered successfully.')
+        else:
+            print('Registration cancelled.')
+
+    def add_symptoms_to_patient(self, patients):
+        """
+        Add symptoms to an existing patient
+        Args:
+            patients (list<Patient>): list of all active patients
+        """
+        print("-----Add Symptoms to Patient-----")
+        self.view_patient(patients)
+        
+        patient_index = input('Please enter the patient ID: ')
+        try:
+            patient_index = int(patient_index) - 1
+            if patient_index not in range(len(patients)):
+                print('The id entered was not found.')
+                return
+        except ValueError:
+            print('The id entered is incorrect')
+            return
+        
+        patient = patients[patient_index]
+        print(f'\nCurrent symptoms for {patient.full_name()}:')
+        patient.print_symptoms()
+        
+        print('\nEnter new symptoms (press Enter after each symptom, type "done" when finished):')
+        while True:
+            symptom = input('Symptom: ').strip()
+            if symptom.lower() == 'done' or symptom == '':
+                break
+            patient.add_symptom(symptom)
+            print(f'Symptom "{symptom}" added.')
+        
+        print('Symptoms updated successfully.')
+
     def view_patient(self, patients):
         """
         print a list of patients
@@ -207,9 +288,44 @@ class Admin:
             patients (list<Patients>): list of all the active patients
         """
         print("-----View Patients-----")
-        print('ID |          Full Name           |      Doctor`s Full Name      | Age |    Mobile     | Postcode ')
+        print('ID |          Full Name           |      Doctor`s Full Name      | Age |    Mobile     |      Address      | Postcode ')
         #ToDo10
         self.view(patients)
+
+    def group_patients_by_family(self, patients):
+        """
+        Groups patients by family (surname)
+        Args:
+            patients (list<Patient>): list of all patients
+        Returns:
+            dict: dictionary with surname as key and list of patients as value
+        """
+        families = {}
+        for patient in patients:
+            surname = patient.get_surname()
+            if surname not in families:
+                families[surname] = []
+            families[surname].append(patient)
+        return families
+
+    def view_patients_by_family(self, patients):
+        """
+        View patients grouped by family (surname)
+        Args:
+            patients (list<Patient>): list of all patients
+        """
+        print("-----View Patients by Family-----")
+        families = self.group_patients_by_family(patients)
+        
+        if not families:
+            print('No patients found.')
+            return
+        
+        for surname, family_patients in families.items():
+            print(f'\n--- Family: {surname} ({len(family_patients)} member(s)) ---')
+            print('ID |          Full Name           |      Doctor`s Full Name      | Age |    Mobile     |      Address      | Postcode ')
+            for index, patient in enumerate(family_patients):
+                print(f'{index+1:3}|{patient}')
 
     def assign_doctor_to_patient(self, patients, doctors):
         """
@@ -221,7 +337,7 @@ class Admin:
         print("-----Assign-----")
 
         print("-----Patients-----")
-        print('ID |          Full Name           |      Doctor`s Full Name      | Age |    Mobile     | Postcode ')
+        print('ID |          Full Name           |      Doctor`s Full Name      | Age |    Mobile     |      Address      | Postcode ')
         self.view(patients)
 
         patient_index = input('Please enter the patient ID: ')
@@ -308,7 +424,7 @@ class Admin:
         """
 
         print("-----Discharged Patients-----")
-        print('ID |          Full Name           |      Doctor`s Full Name      | Age |    Mobile     | Postcode ')
+        print('ID |          Full Name           |      Doctor`s Full Name      | Age |    Mobile     |      Address      | Postcode ')
         #ToDo13
         self.view(discharged_patients)
 
@@ -372,5 +488,94 @@ class Admin:
 
         # d) Total number of patients based on the illness type
         print("\nTotal number of patients per illness type:")
-        print('Illness / symptom tracking is currently disabled.')
+        symptom_counts = {}
+        all_patients = patients + discharged_patients
+        for patient in all_patients:
+            symptoms = patient.get_symptoms()
+            if symptoms:
+                for symptom in symptoms:
+                    symptom_counts[symptom] = symptom_counts.get(symptom, 0) + 1
+        
+        if symptom_counts:
+            for symptom, count in sorted(symptom_counts.items()):
+                print(f'- {symptom}: {count} patient(s)')
+        else:
+            print('No symptoms recorded.')
+
+    def save_patients_to_file(self, patients, discharged_patients, filename='patients_data.txt'):
+        """
+        Saves all patient data to a plain text file. One line per patient.
+        """
+        try:
+            f = open(filename, 'w')
+            f.write('ACTIVE\n')
+            for p in patients:
+                f.write(p.to_line() + '\n')
+            f.write('DISCHARGED\n')
+            for p in discharged_patients:
+                f.write(p.to_line() + '\n')
+            f.close()
+            print('Patient data saved successfully to ' + filename)
+            return True
+        except Exception as e:
+            print('Error saving patient data: ' + str(e))
+            return False
+
+    def load_patients_from_file(self, filename='patients_data.txt'):
+        """
+        Loads patient data from a plain text file.
+        Returns (active_patients, discharged_patients).
+        """
+        active_patients = []
+        discharged_patients = []
+        try:
+            f = open(filename, 'r')
+            lines = f.readlines()
+            f.close()
+        except FileNotFoundError:
+            print('File ' + filename + ' not found. Starting with empty patient list.')
+            return active_patients, discharged_patients
+        except Exception as e:
+            print('Error loading file: ' + str(e))
+            return active_patients, discharged_patients
+
+        section = None
+        for line in lines:
+            line = line.strip()
+            if line == 'ACTIVE':
+                section = 'active'
+                continue
+            if line == 'DISCHARGED':
+                section = 'discharged'
+                continue
+            if not line or section is None:
+                continue
+            p = patient_from_line(line)
+            if p is None:
+                continue
+            if section == 'active':
+                active_patients.append(p)
+            else:
+                discharged_patients.append(p)
+
+        print('Patient data loaded from ' + filename)
+        print('Loaded ' + str(len(active_patients)) + ' active patient(s) and ' + str(len(discharged_patients)) + ' discharged patient(s)')
+        return active_patients, discharged_patients
+
+    def restore_doctor_patient_relationships(self, patients, doctors):
+        """
+        Restores doctor-patient relationships after loading from file
+        Args:
+            patients (list<Patient>): list of patients
+            doctors (list<Doctor>): list of doctors
+        """
+        for patient in patients:
+            doctor_name = patient.get_doctor()
+            if doctor_name and doctor_name != 'None':
+                # Find the doctor by full name
+                for doctor in doctors:
+                    if doctor.full_name() == doctor_name:
+                        # Restore the relationship
+                        doctor.add_patient(patient)
+                        break
 

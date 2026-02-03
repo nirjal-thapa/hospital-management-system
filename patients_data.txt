@@ -1,0 +1,4 @@
+ACTIVE
+Nirjal	Thapa	18	100	Tarakeshwor		Anish Kumar	Fever;Headache
+Zidan	Shaiyed	18	984111111111	Manamaiju	44600	None	Headache;Migraine;Gastric
+DISCHARGED
