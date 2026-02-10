@@ -9,7 +9,9 @@ def main():
     """
 
     # Initialising the actors
-    admin = Admin('admin','123','B1 1AB') # username is 'admin', password is '123'
+    # Load saved admin credentials (if any), otherwise use defaults
+    username, password, address = Admin.load_credentials()
+    admin = Admin(username, password, address)
     doctors = [Doctor('Anish','Kumar','Internal Med.'), Doctor('Shyam','Kumar','Pediatrics'), Doctor('Rajesh','Thakur','Cardiology')]
     
     # Load patient data from file, or use default if file doesn't exist

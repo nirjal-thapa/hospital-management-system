@@ -16,6 +16,56 @@ class Admin:
         self.__password = password
         self.__address =  address
 
+    @staticmethod
+    def load_credentials(filename='admin_credentials.txt', default_username='admin', default_password='123', default_address='B1 1AB'):
+        """
+        Load admin credentials from a simple text file.
+        File format (one per line):
+          username=<value>
+          password=<value>
+          address=<value>
+        """
+        username = default_username
+        password = default_password
+        address = default_address
+
+        try:
+            f = open(filename, 'r')
+            for raw in f.readlines():
+                line = raw.strip()
+                if not line or '=' not in line:
+                    continue
+                key, value = line.split('=', 1)
+                key = key.strip().lower()
+                value = value.strip()
+                if key == 'username':
+                    username = value
+                elif key == 'password':
+                    password = value
+                elif key == 'address':
+                    address = value
+            f.close()
+        except FileNotFoundError:
+            # no saved credentials yet; use defaults
+            pass
+        except Exception as e:
+            print('Error loading admin credentials: ' + str(e))
+
+        return username, password, address
+
+    def save_credentials(self, filename='admin_credentials.txt'):
+        """Save current admin credentials to a simple text file."""
+        try:
+            f = open(filename, 'w')
+            f.write('username=' + str(self.__username) + '\n')
+            f.write('password=' + str(self.__password) + '\n')
+            f.write('address=' + str(self.__address) + '\n')
+            f.close()
+            return True
+        except Exception as e:
+            print('Error saving admin credentials: ' + str(e))
+            return False
+
     def view(self,a_list):
         """
         print a list
@@ -343,7 +393,6 @@ class Admin:
         patient_index = input('Please enter the patient ID: ')
 
         try:
-            # patient_index is the patient ID mines one (-1)
             patient_index = int(patient_index) -1
 
             # check if the id is not in the list of patients
@@ -363,10 +412,7 @@ class Admin:
         doctor_index = input('Please enter the doctor ID: ')
 
         try:
-            # doctor_index is the patient ID mines one (-1)
             doctor_index = int(doctor_index) -1
-
-            # check if the id is in the list of doctors
             if self.find_index(doctor_index,doctors)!=False:
                     
                 # link the patients to the doctor and vice versa
@@ -443,17 +489,20 @@ class Admin:
             #ToDo14
             username = input('Enter the new username: ')
             self.__username = username
+            self.save_credentials()
 
         elif op == 2:
             password = input('Enter the new password: ')
             # validate the password
             if password == input('Enter the new password again: '):
                 self.__password = password
+                self.save_credentials()
 
         elif op == 3:
             #ToDo15
             address = input('Enter the new address: ')
             self.__address = address
+            self.save_credentials()
 
         else:
             #ToDo16
